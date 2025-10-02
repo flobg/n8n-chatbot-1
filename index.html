@@ -1,0 +1,144 @@
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mein n8n Chatbot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #101330, #1ca08a);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    .chat-container {
+      width: 400px;
+      height: 600px;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    }
+
+    .chat-header {
+      padding: 1rem;
+      background: #e74266;
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    .chat-body {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .chat-message {
+      margin: 0.5rem 0;
+      padding: 0.8rem 1rem;
+      border-radius: 15px;
+      max-width: 70%;
+      line-height: 1.4;
+      word-wrap: break-word;
+    }
+
+    .chat-message.user {
+      background: #20b69e;
+      align-self: flex-end;
+      color: #fff;
+    }
+
+    .chat-message.bot {
+      background: #ffffff;
+      align-self: flex-start;
+      color: #101330;
+    }
+
+    .chat-footer {
+      display: flex;
+      padding: 0.5rem;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .chat-footer input {
+      flex: 1;
+      padding: 0.8rem;
+      border: none;
+      border-radius: 10px;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .chat-footer button {
+      margin-left: 0.5rem;
+      padding: 0 1.2rem;
+      background: #e74266;
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .chat-footer button:hover {
+      background: #cf3c5c;
+    }
+  </style>
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">🤖 Mein Chatbot</div>
+    <div class="chat-body" id="chatBody"></div>
+    <div class="chat-footer">
+      <input type="text" id="chatInput" placeholder="Nachricht eingeben..." />
+      <button onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <script>
+    const WEBHOOK_URL = "https://flotown.app.n8n.cloud/webhook/15e6bc38-f5d5-4feb-b112-366a12db8e95/chat"; // <--- HIER deine n8n Webhook-URL eintragen
+
+    async function sendMessage() {
+      const input = document.getElementById("chatInput");
+      const message = input.value.trim();
+      if (!message) return;
+
+      addMessage(message, "user");
+      input.value = "";
+
+      try {
+        const response = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message })
+        });
+
+        const data = await response.json();
+        addMessage(data.reply || "⚠️ Keine Antwort erhalten", "bot");
+      } catch (error) {
+        addMessage("❌ Fehler beim Verbinden mit n8n", "bot");
+      }
+    }
+
+    function addMessage(text, sender) {
+      const body = document.getElementById("chatBody");
+      const msg = document.createElement("div");
+      msg.classList.add("chat-message", sender);
+      msg.textContent = text;
+      body.appendChild(msg);
+      body.scrollTop = body.scrollHeight;
+    }
+  </script>
+</body>
+</html>
